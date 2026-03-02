@@ -2,7 +2,7 @@
 # Resource Group
 # -----------------------------
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-linux-vm-rg1"
+  name     = "rg-linux-vm-rg"
   location = "centralindia"
 }
 
@@ -31,38 +31,6 @@ resource "azurerm_subnet" "subnet" {
 }
 
 # -----------------------------
-# Network Security Group
-# -----------------------------
-resource "azurerm_network_security_group" "nsg" {
-  name                = "nsg-linux-vm"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-
-  security_rule {
-    name                       = "SSH"
-    priority                   = 1001
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range           = "*"
-    destination_port_range      = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-}
-
-# -----------------------------
-# Public IP
-# -----------------------------
-resource "azurerm_public_ip" "pubip" {
-  name                = "pubip-linux-vm"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
-}
-
-# -----------------------------
 # Network Interface
 # -----------------------------
 resource "azurerm_network_interface" "nic" {
@@ -74,21 +42,11 @@ resource "azurerm_network_interface" "nic" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.subnet.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id           = azurerm_public_ip.pubip.id
   }
 
   depends_on = [
-    azurerm_subnet.subnet,
-    azurerm_public_ip.pubip
+    azurerm_subnet.subnet
   ]
-}
-
-# -----------------------------
-# Associate NIC with NSG
-# -----------------------------
-resource "azurerm_network_interface_security_group_association" "nic_nsg_assoc" {
-  network_interface_id      = azurerm_network_interface.nic.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
 # -----------------------------
@@ -99,11 +57,12 @@ resource "azurerm_linux_virtual_machine" "vm" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
 
+  # Availability Zone
   zone = "3"
-  size = "Standard_D2s_v3"
-  admin_username = "azureuser"
 
-  # Password login
+  # VM Size
+  size                            = "Standard_D2s_v3"
+  admin_username                  = "azureuser"
   admin_password                  = var.admin_password
   disable_password_authentication = false
 
@@ -114,7 +73,6 @@ resource "azurerm_linux_virtual_machine" "vm" {
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
-    disk_size_gb         = 30
   }
 
   source_image_reference {
@@ -130,14 +88,10 @@ resource "azurerm_linux_virtual_machine" "vm" {
 }
 
 # -----------------------------
-# Outputs
+# Output
 # -----------------------------
 output "vm_private_ip" {
   description = "The private IP address of the VM"
   value       = azurerm_network_interface.nic.private_ip_address
 }
 
-output "vm_public_ip" {
-  description = "The public IP address of the VM"
-  value       = azurerm_public_ip.pubip.ip_address
-}
