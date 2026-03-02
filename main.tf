@@ -41,7 +41,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   name                            = "vm-${count.index}"
   resource_group_name             = azurerm_resource_group.rg.name
   location                        = azurerm_resource_group.rg.location
-  size                            = "Standard_B2s"
+  size                            = "Standard_DS1_v2"
   admin_username                  = "azureuser"
   admin_password                  = var.admin_password
   disable_password_authentication = false
