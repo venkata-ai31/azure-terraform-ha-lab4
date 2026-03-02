@@ -3,7 +3,7 @@
 # -----------------------------
 resource "azurerm_resource_group" "rg" {
   name     = "rg-linux-vm-rg"
-  location = "centralus" # Moved to East US 2 for better capacity
+  location = "centralus"  # Pick a region with free-tier VM availability
 }
 
 # -----------------------------
@@ -24,6 +24,11 @@ resource "azurerm_subnet" "subnet" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
+
+  # Ensure the subnet waits for the VNet to be created
+  depends_on = [
+    azurerm_virtual_network.vnet
+  ]
 }
 
 # -----------------------------
@@ -48,9 +53,11 @@ resource "azurerm_linux_virtual_machine" "vm" {
   name                = "ubuntu-vm"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  zone                = "1" # Adding an explicit zone can help bypass capacity issues
-  
-  size                            = "Standard_D2s_v3" 
+
+  # Optional: zone can help with capacity issues
+  zone = "1"
+
+  size                            = "Standard_B1s"  # Free-tier eligible
   admin_username                  = "azureuser"
   admin_password                  = var.admin_password
   disable_password_authentication = false
@@ -64,10 +71,11 @@ resource "azurerm_linux_virtual_machine" "vm" {
     storage_account_type = "Standard_LRS"
   }
 
+  # Use Ubuntu 24.04 LTS (Gen2 not required for free tier)
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    offer     = "ubuntu-24_04-lts"
+    sku       = "server"
     version   = "latest"
   }
 }
