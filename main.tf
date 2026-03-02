@@ -77,13 +77,18 @@ resource "azurerm_network_interface" "nic" {
     public_ip_address_id           = azurerm_public_ip.pubip.id
   }
 
-  network_security_group_id = azurerm_network_security_group.nsg.id
-
   depends_on = [
     azurerm_subnet.subnet,
-    azurerm_public_ip.pubip,
-    azurerm_network_security_group.nsg
+    azurerm_public_ip.pubip
   ]
+}
+
+# -----------------------------
+# Associate NIC with NSG
+# -----------------------------
+resource "azurerm_network_interface_security_group_association" "nic_nsg_assoc" {
+  network_interface_id      = azurerm_network_interface.nic.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
 # -----------------------------
