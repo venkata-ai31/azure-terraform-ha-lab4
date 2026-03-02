@@ -103,7 +103,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   size = "Standard_D2s_v3"
   admin_username = "azureuser"
 
-  # Use password authentication instead of SSH key
+  # Password login
   admin_password                  = var.admin_password
   disable_password_authentication = false
 
