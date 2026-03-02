@@ -1,4 +1,4 @@
 resource "azurerm_resource_group" "rg" {
   name     = "rg-day1-terraform"
-  location = "Central India"
+  location = "East US"
 }
