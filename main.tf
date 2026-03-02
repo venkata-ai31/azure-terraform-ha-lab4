@@ -59,8 +59,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
 
-  # Distribute across zones
-  zone = tostring(count.index + 1)
+
 
   size                            = "Standard_D2s_v3"
   admin_username                  = "azureuser"
