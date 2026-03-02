@@ -1,8 +1,29 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">=3.0.0"
+    }
+  }
+
+  required_version = ">=1.2.0"
+}
+
+provider "azurerm" {
+  features {}
+}
+
+# -----------------------------
+# Resource Group
+# -----------------------------
 resource "azurerm_resource_group" "rg" {
   name     = "rg-day1-terraform"
   location = "eastus"
 }
 
+# -----------------------------
+# Virtual Network
+# -----------------------------
 resource "azurerm_virtual_network" "vnet" {
   name                = "vnet-ha"
   address_space       = ["10.0.0.0/16"]
@@ -10,6 +31,9 @@ resource "azurerm_virtual_network" "vnet" {
   resource_group_name = azurerm_resource_group.rg.name
 }
 
+# -----------------------------
+# Subnet
+# -----------------------------
 resource "azurerm_subnet" "subnet" {
   name                 = "public-subnet"
   resource_group_name  = azurerm_resource_group.rg.name
@@ -17,12 +41,18 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+# -----------------------------
+# Availability Set
+# -----------------------------
 resource "azurerm_availability_set" "avset" {
   name                = "avset-ha"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 }
 
+# -----------------------------
+# Network Interfaces
+# -----------------------------
 resource "azurerm_network_interface" "nic" {
   count               = 2
   name                = "nic-${count.index}"
@@ -36,6 +66,9 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
+# -----------------------------
+# Linux Virtual Machines
+# -----------------------------
 resource "azurerm_linux_virtual_machine" "vm" {
   count                           = 2
   name                            = "vm-${count.index}"
@@ -59,8 +92,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "24_04-lts-gen2"
+    offer     = "ubuntu-24_04-lts"
+    sku       = "server"
     version   = "latest"
   }
 }
