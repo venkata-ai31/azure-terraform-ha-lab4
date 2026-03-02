@@ -1,3 +1,14 @@
+# Configure the Azure Provider
+provider "azurerm" {
+  features {}
+}
+
+variable "admin_password" {
+  description = "The admin password for the VM"
+  type        = string
+  sensitive   = true
+}
+
 # -----------------------------
 # Resource Group
 # -----------------------------
@@ -42,15 +53,18 @@ resource "azurerm_network_interface" "nic" {
 }
 
 # -----------------------------
-# Linux Virtual Machine (Ubuntu 24.04 LTS Gen2)
+# Linux Virtual Machine
 # -----------------------------
 resource "azurerm_linux_virtual_machine" "vm" {
-  name                  = "ubuntu-vm"
-  resource_group_name   = azurerm_resource_group.rg.name
-  location              = azurerm_resource_group.rg.location
-  size                  = "Standard_B1s"  # Free-tier eligible size
-  admin_username        = "azureuser"
-  admin_password        = var.admin_password
+  name                = "ubuntu-vm"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  
+  # Changed size to Standard_D2s_v3 to avoid capacity restrictions
+  size                = "Standard_D2s_v3" 
+  
+  admin_username      = "azureuser"
+  admin_password      = var.admin_password
   disable_password_authentication = false
 
   network_interface_ids = [
@@ -64,9 +78,16 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "ubuntu-24_04-lts"
-    sku       = "server"
+    offer     = "0001-com-ubuntu-server-jammy" # Ubuntu 22.04 LTS (often more stable)
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
 
+# -----------------------------
+# Outputs
+# -----------------------------
+output "vm_private_ip" {
+  description = "The private IP address of the deployed VM"
+  value       = azurerm_network_interface.nic.private_ip_address
+}
