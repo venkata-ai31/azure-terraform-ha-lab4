@@ -25,9 +25,7 @@ resource "azurerm_subnet" "subnet" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
 
-  depends_on = [
-    azurerm_virtual_network.vnet
-  ]
+
 }
 
 # -----------------------------
@@ -45,9 +43,7 @@ resource "azurerm_network_interface" "nic" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  depends_on = [
-    azurerm_subnet.subnet
-  ]
+
 }
 
 # -----------------------------
@@ -82,9 +78,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
     version   = "latest"
   }
 
-  depends_on = [
-    azurerm_network_interface.nic
-  ]
+
 }
 
 # -----------------------------
