@@ -47,16 +47,26 @@ resource "azurerm_network_interface" "nic" {
 }
 
 # -----------------------------
-# Linux Virtual Machine
+# Availability Set
+# -----------------------------
+resource "azurerm_availability_set" "avset" {
+  name                         = "avset-linux-vm"
+  location                     = azurerm_resource_group.rg.location
+  resource_group_name          = azurerm_resource_group.rg.name
+  platform_fault_domain_count  = 2
+  platform_update_domain_count = 2
+  managed                      = true
+}
+
+# -----------------------------
+# Linux Virtual  Machine
 # -----------------------------
 resource "azurerm_linux_virtual_machine" "vm" {
   count               = 2
   name                = "ubuntu-vm-${count.index}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-
-
-
+  availability_set_id = azurerm_availability_set.avset.id
   size                            = "Standard_D2s_v3"
   admin_username                  = "azureuser"
   admin_password                  = var.admin_password
