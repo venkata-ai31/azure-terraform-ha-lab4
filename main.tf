@@ -92,15 +92,6 @@ resource "azurerm_network_interface_security_group_association" "nic_nsg_assoc" 
 }
 
 # -----------------------------
-# SSH Key (Use existing or generate one)
-# -----------------------------
-variable "ssh_public_key" {
-  description = "SSH public key for VM login"
-  type        = string
-  sensitive   = true
-}
-
-# -----------------------------
 # Linux Virtual Machine
 # -----------------------------
 resource "azurerm_linux_virtual_machine" "vm" {
@@ -112,11 +103,9 @@ resource "azurerm_linux_virtual_machine" "vm" {
   size = "Standard_D2s_v3"
   admin_username = "azureuser"
 
-  disable_password_authentication = true
-  admin_ssh_key {
-    username   = "azureuser"
-    public_key = var.ssh_public_key
-  }
+  # Use password authentication instead of SSH key
+  admin_password                  = var.admin_password
+  disable_password_authentication = false
 
   network_interface_ids = [
     azurerm_network_interface.nic.id
