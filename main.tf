@@ -1,9 +1,8 @@
-
 # -----------------------------
 # Resource Group
 # -----------------------------
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-day1-terraform"
+  name     = "rg-linux-vm-rg"
   location = "eastus"
 }
 
@@ -11,7 +10,7 @@ resource "azurerm_resource_group" "rg" {
 # Virtual Network
 # -----------------------------
 resource "azurerm_virtual_network" "vnet" {
-  name                = "vnet-ha"
+  name                = "vnet-linux-vm"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -21,27 +20,17 @@ resource "azurerm_virtual_network" "vnet" {
 # Subnet
 # -----------------------------
 resource "azurerm_subnet" "subnet" {
-  name                 = "public-subnet"
+  name                 = "subnet-linux-vm"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
 # -----------------------------
-# Availability Set
-# -----------------------------
-resource "azurerm_availability_set" "avset" {
-  name                = "avset-ha"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
-# -----------------------------
-# Network Interfaces
+# Network Interface
 # -----------------------------
 resource "azurerm_network_interface" "nic" {
-  count               = 0
-  name                = "nic-${count.index}"
+  name                = "nic-linux-vm"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -53,23 +42,20 @@ resource "azurerm_network_interface" "nic" {
 }
 
 # -----------------------------
-# Linux Virtual Machines
+# Linux Virtual Machine (Ubuntu 24.04 LTS Gen2)
 # -----------------------------
 resource "azurerm_linux_virtual_machine" "vm" {
-  count                           = 1
-  name                            = "vm-${count.index}"
-  resource_group_name             = azurerm_resource_group.rg.name
-  location                        = azurerm_resource_group.rg.location
-  size                            = "Standard_D2s_v3"
-  admin_username                  = "azureuser"
-  admin_password                  = var.admin_password
+  name                  = "ubuntu-vm"
+  resource_group_name   = azurerm_resource_group.rg.name
+  location              = azurerm_resource_group.rg.location
+  size                  = "Standard_B1s"  # Free-tier eligible size
+  admin_username        = "azureuser"
+  admin_password        = var.admin_password
   disable_password_authentication = false
 
   network_interface_ids = [
-    azurerm_network_interface.nic[count.index].id
+    azurerm_network_interface.nic.id
   ]
-
-  availability_set_id = azurerm_availability_set.avset.id
 
   os_disk {
     caching              = "ReadWrite"
@@ -83,3 +69,4 @@ resource "azurerm_linux_virtual_machine" "vm" {
     version   = "latest"
   }
 }
+
