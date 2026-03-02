@@ -1,6 +1,6 @@
 name: Terraform Destroy Azure CI/CD
 
-# Manual trigger only, no push triggers
+# Manual trigger only
 on:
   workflow_dispatch:
 
@@ -16,7 +16,7 @@ jobs:
       TF_VAR_admin_password: ${{ secrets.TF_VAR_admin_password }}
 
     steps:
-    # 1️⃣ Checkout the repo
+    # 1️⃣ Checkout repository
     - name: Checkout repo
       uses: actions/checkout@v3
 
@@ -24,34 +24,14 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
 
-    # 3️⃣ Terraform Init
+    # 3️⃣ Initialize Terraform with remote backend
     - name: Terraform Init
       run: terraform init
 
-    # 4️⃣ Terraform Validate
+    # 4️⃣ Validate configuration (optional)
     - name: Terraform Validate
       run: terraform validate
 
-    # 5️⃣ Stage-wise destroy: VMs first
-    - name: Destroy Linux VMs
-      run: terraform destroy -target=azurerm_linux_virtual_machine.vm -auto-approve
-
-    # 6️⃣ Destroy NICs
-    - name: Destroy Network Interfaces
-      run: terraform destroy -target=azurerm_network_interface.nic -auto-approve
-
-    # 7️⃣ Destroy Subnet
-    - name: Destroy Subnet
-      run: terraform destroy -target=azurerm_subnet.subnet -auto-approve
-
-    # 8️⃣ Destroy Virtual Network
-    - name: Destroy Virtual Network
-      run: terraform destroy -target=azurerm_virtual_network.vnet -auto-approve
-
-    # 9️⃣ Destroy Availability Set (optional, safe after VMs)
-    - name: Destroy Availability Set
-      run: terraform destroy -target=azurerm_availability_set.avset -auto-approve
-
-    # 🔟 Destroy Resource Group last
-    - name: Destroy Resource Group
-      run: terraform destroy -target=azurerm_resource_group.rg -auto-approve
+    # 5️⃣ Destroy all resources automatically
+    - name: Terraform Destroy All
+      run: terraform destroy -auto-approve
