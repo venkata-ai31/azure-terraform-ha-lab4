@@ -34,7 +34,8 @@ resource "azurerm_subnet" "subnet" {
 # Network Interface
 # -----------------------------
 resource "azurerm_network_interface" "nic" {
-  name                = "nic-linux-vm"
+  count               = 2
+  name                = "nic-linux-vm-${count.index}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -53,21 +54,21 @@ resource "azurerm_network_interface" "nic" {
 # Linux Virtual Machine
 # -----------------------------
 resource "azurerm_linux_virtual_machine" "vm" {
-  name                = "ubuntu-vm"
+  count               = 2
+  name                = "ubuntu-vm-${count.index}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
 
-  # Availability Zone
-  zone = "3"
+  # Distribute across zones
+  zone = tostring(count.index + 1)
 
-  # VM Size
   size                            = "Standard_D2s_v3"
   admin_username                  = "azureuser"
   admin_password                  = var.admin_password
   disable_password_authentication = false
 
   network_interface_ids = [
-    azurerm_network_interface.nic.id
+    azurerm_network_interface.nic[count.index].id
   ]
 
   os_disk {
@@ -77,8 +78,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "ubuntu-24_04-lts"
-    sku       = "server"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
