@@ -95,11 +95,3 @@ output "vm_private_ip" {
   value       = azurerm_network_interface.nic.private_ip_address
 }
 
-# -----------------------------
-# Admin password variable
-# -----------------------------
-variable "admin_password" {
-  description = "Admin password for the Linux VM"
-  type        = string
-  sensitive   = true
-}
