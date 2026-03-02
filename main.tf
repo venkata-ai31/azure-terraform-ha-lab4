@@ -3,7 +3,7 @@
 # -----------------------------
 resource "azurerm_resource_group" "rg" {
   name     = "rg-linux-vm-rg"
-  location = "centralus"  # Pick a region with free-tier VM availability
+  location = "centralindia"
 }
 
 # -----------------------------
@@ -25,7 +25,6 @@ resource "azurerm_subnet" "subnet" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
 
-  # Ensure the subnet waits for the VNet to be created
   depends_on = [
     azurerm_virtual_network.vnet
   ]
@@ -44,6 +43,10 @@ resource "azurerm_network_interface" "nic" {
     subnet_id                     = azurerm_subnet.subnet.id
     private_ip_address_allocation = "Dynamic"
   }
+
+  depends_on = [
+    azurerm_subnet.subnet
+  ]
 }
 
 # -----------------------------
@@ -54,10 +57,11 @@ resource "azurerm_linux_virtual_machine" "vm" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
 
-  # Optional: zone can help with capacity issues
-  zone = "1"
+  # Availability Zone
+  zone = "3"
 
-  size                            = "Standard_B1s"  # Free-tier eligible
+  # VM Size
+  size                            = "Standard_D2s_v3"
   admin_username                  = "azureuser"
   admin_password                  = var.admin_password
   disable_password_authentication = false
@@ -71,13 +75,16 @@ resource "azurerm_linux_virtual_machine" "vm" {
     storage_account_type = "Standard_LRS"
   }
 
-  # Use Ubuntu 24.04 LTS (Gen2 not required for free tier)
   source_image_reference {
     publisher = "Canonical"
     offer     = "ubuntu-24_04-lts"
     sku       = "server"
     version   = "latest"
   }
+
+  depends_on = [
+    azurerm_network_interface.nic
+  ]
 }
 
 # -----------------------------
@@ -86,4 +93,13 @@ resource "azurerm_linux_virtual_machine" "vm" {
 output "vm_private_ip" {
   description = "The private IP address of the VM"
   value       = azurerm_network_interface.nic.private_ip_address
+}
+
+# -----------------------------
+# Admin password variable
+# -----------------------------
+variable "admin_password" {
+  description = "Admin password for the Linux VM"
+  type        = string
+  sensitive   = true
 }
