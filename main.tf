@@ -3,7 +3,7 @@
 # -----------------------------
 resource "azurerm_resource_group" "rg" {
   name     = "rg-linux-vm-rg"
-  location = "eastus2" # Moved to East US 2 for better capacity
+  location = "centralus" # Moved to East US 2 for better capacity
 }
 
 # -----------------------------
