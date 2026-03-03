@@ -58,6 +58,8 @@ resource "azurerm_availability_set" "avset" {
   managed                      = true
 }
 
+
+
 # -----------------------------
 # Linux Virtual  Machine
 # -----------------------------
@@ -67,6 +69,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   availability_set_id = azurerm_availability_set.avset.id
+
   size                            = "Standard_D2s_v3"
   admin_username                  = "azureuser"
   admin_password                  = var.admin_password
@@ -75,6 +78,16 @@ resource "azurerm_linux_virtual_machine" "vm" {
   network_interface_ids = [
     azurerm_network_interface.nic[count.index].id
   ]
+
+  custom_data = base64encode(<<EOF
+#!/bin/bash
+apt update -y
+apt install apache2 -y
+echo "<h1>Server ${count.index}</h1>" > /var/www/html/index.html
+systemctl enable apache2
+systemctl start apache2
+EOF
+  )
 
   os_disk {
     caching              = "ReadWrite"
@@ -87,9 +100,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
     sku       = "22_04-lts"
     version   = "latest"
   }
-
-
 }
+
 
 # -----------------------------
 # Output
